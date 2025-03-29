@@ -1,7 +1,3 @@
-#question 1:
-#méthode de la relaxation pour calculer le potentiel en tout point
-#1ere à 0V, 2e à 100V etc
-#Trouver un critère d'arrêt dans le calcul
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -86,17 +82,6 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-
-#Afficher le PM
-cp = plt.contourf(X, Y, V, levels=100, cmap="plasma")
-plt.colorbar(cp, label="Potentiel (V)")
-plt.title("Potentiel électrique dans le tube PM")
-plt.xlabel("x (mm)")
-plt.ylabel("y (mm)")
-plt.axis('equal')
-plt.tight_layout()
-plt.savefig("potentiel_2r_PM.png", dpi=300)
-plt.show()
 
 # calculer le gradient en x et y grâce à numpy
 Ey, Ex = np.gradient(-V, dx, dx)

@@ -1,7 +1,3 @@
-#question 1:
-#méthode de la relaxation pour calculer le potentiel en tout point
-#1ere à 0V, 2e à 100V etc
-#Trouver un critère d'arrêt dans le calcul
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -87,21 +83,39 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
 
-#Afficher le PM
-cp = plt.contourf(X, Y, V, levels=100, cmap="plasma")
-plt.colorbar(cp, label="Potentiel (V)")
-plt.title("Potentiel électrique dans le tube PM")
-plt.xlabel("x (mm)")
-plt.ylabel("y (mm)")
-plt.axis('equal')
-plt.tight_layout()
-plt.savefig("potentiel_2r_PM.png", dpi=300)
-plt.show()
-
 # calculer le gradient en x et y grâce à numpy
 Ey, Ex = np.gradient(-V, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
+
+
+#implémenter une fonction de déterminer x(t) d'un électron
+#Conditions initiales applicables: x(t=0) et v(t=0)
+
+#constantes physiques:
+q = -1.602*e-19 # charge de l'électron
+m = 9.109*e-31 # masse
+# F(x,y,z) = qE(x,y,z)
+
+# Il faut approximer le champ entre les cases existantes avec euler pour des valeurs comme 0.25 ou 4.287
+def Eulerer_lechamp(x, y, Ex, Ey, dx):
+    # transformer la position en indice de row/colonne
+    i = int(y / dx)
+    j = int(x / dx)
+    # il faut créer une référence de grandeur pour savoir si on est dans la grille
+    ny, nx = Ex.shape
+    if 0 <= i < ny and 0 <= j < nx: # vérifier que c'est dans la grille que j'ai créée sinon ça marche pas
+        return Ex[i, j], Ey[i, j]
+    else:
+        return 0, 0 # si on n'est pas dans la grille, il n'y a pas de champ
+
+def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, steps):
+    x = [x0]
+    y = [y0]
+
+
+
+
 
 #afficher le champ produit
 plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
