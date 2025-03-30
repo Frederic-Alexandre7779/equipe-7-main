@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import math
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
@@ -143,12 +143,12 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
 
 # ---------------------------------------Question 3b --------------------------------------------#
 lum = 3*10**8
-x0 = 5
-y0 = 3
-vx0 = lum
-vy0 = 0
+x0 = 0
+y0 = 0
+vx0 = 10000
+vy0 = 10000
 dt = 1e-12
-it_max = 10**4
+it_max = 30000000
 traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)
 
 # ---------------------------------------Question 3c --------------------------------------------#
