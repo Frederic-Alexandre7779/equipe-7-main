@@ -5,7 +5,7 @@ import numpy as np
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
 a, b, c, d, e, f = 3, 2, 4, 2, 0.2, 6
-N = 5
+N = 4
 dx = 0.1 # step
 
 # -----------------------------Question 1------------------------------#
@@ -142,8 +142,18 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
     return np.array(x), np.array(y)
 
 # ---------------------------------------Question 3b --------------------------------------------#
+lum = 3*10**8
+x0 = 5
+y0 = 3
+vx0 = lum
+vy0 = 0
+dt = 1e-12
+it_max = 10**4
+traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)
 
-traj_x, traj_y = position_el(x0=0, y0=0, vx0=0, vy0=0, dt=1e-12, it_max=4000)
+# ---------------------------------------Question 3c --------------------------------------------#
+
+
 
 
 #----------------------------------------affichage du pm champ électrique q2---------------------#
@@ -168,7 +178,7 @@ traj_x, traj_y = position_el(x0=0, y0=0, vx0=0, vy0=0, dt=1e-12, it_max=4000)
 
 #----------------------------------------affichage de la trajectoire x(t)------------------------#
 plt.contourf(X, Y, V, levels=100, cmap='plasma')
-plt.plot(traj_, traj_y, 'b-', label="Trajectoire")
+plt.plot(traj_x, traj_y, 'y-', label="Trajectoire")
 plt.plot(x0, y0, 'go', label="Départ (0,0)")
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
@@ -177,3 +187,6 @@ plt.legend()
 plt.axis("equal")
 plt.savefig("Q3b_trajectoire.png", dpi=300)
 plt.show()
+
+print("Position finale :", traj_x[-1], traj_y[-1])
+print("Déplacement total :", traj_x[-1] - traj_x[0], traj_y[-1] - traj_y[0])
