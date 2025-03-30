@@ -10,8 +10,10 @@ dx = 0.1 # step
 
 
 largeur = (2*a + (N+1)*(c/2) + (N-1)*(d/2)) # trouvé en analysant l'image 
-Lx,Ly = largeur, f # grandeur de la grille en x et en y sans espacement autour du pm
-nx, ny = int(Lx/dx), int(Ly/dx) # nombre de points en x et en y
+Lx = largeur
+Ly = f # grandeur de la grille en x et en y sans espacement autour du pm
+nx = int(Lx/dx)
+ny = int(Ly/dx) # nombre de points en x et en y
 
 x = np.linspace(0, Lx, nx)
 y = np.linspace(0, Ly, ny)
@@ -96,6 +98,7 @@ E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 q = -1.602*e-19 # charge de l'électron
 m = 9.109*e-31 # masse
 # F(x,y,z) = qE(x,y,z)
+# a = qE/m
 
 # Il faut approximer le champ entre les cases existantes avec euler pour des valeurs comme 0.25 ou 4.287
 def Eulerer_lechamp(x, y, Ex, Ey, dx):
@@ -109,11 +112,30 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
     else:
         return 0, 0 # si on n'est pas dans la grille, il n'y a pas de champ
 
-def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, steps):
-    x = [x0]
+def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
+    #placer l'électron à t=0
+    x = [x0] # position à t=0
     y = [y0]
+    vx = vx0 # vitesse à t=0
+    vy = vy0
 
+    for i in range(it_max):
+        # méthode d'Euler du champ au point courant
+        Ex_val, Ey_val = Eulerer_lechamp(x[-1], y[-1], Ex, Ey, dx)
+        #littéralement Euler:
+        ax = (q*Ex_val / m) # accélération en x
+        ay = (q*Ey_val / m)  # même chose en y
 
+        vx += ax * dt # changement infinitésimal de la vitesse
+        vy += ay * dt # même chose en y
+
+        x_new = x[-1] + vx * dt # changement infinitésimal de la position
+        y_new = y[-1] + vy * dt
+
+        x.append(x_new)
+        y.append(y_new)
+
+    return np.array(x), np.array(y)
 
 
 
