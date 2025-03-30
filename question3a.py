@@ -8,6 +8,7 @@ a, b, c, d, e, f = 3, 2, 4, 2, 0.2, 6
 N = 5
 dx = 0.1 # step
 
+# -----------------------------Question 1------------------------------#
 
 largeur = (2*a + (N+1)*(c/2) + (N-1)*(d/2)) # trouvé en analysant l'image 
 Lx = largeur
@@ -85,11 +86,14 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
 
+# --------------------------------------- Question 2 ---------------------------------#
+
 # calculer le gradient en x et y grâce à numpy
 Ey, Ex = np.gradient(-V, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
+# ---------------------------------------- Question 3a--------------------------------#
 
 #implémenter une fonction de déterminer x(t) d'un électron
 #Conditions initiales applicables: x(t=0) et v(t=0)
@@ -137,22 +141,39 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
 
     return np.array(x), np.array(y)
 
+# ---------------------------------------Question 3b --------------------------------------------#
+
+traj_x, traj_y = position_el(x0=0, y0=0, vx0=0, vy0=0, dt=1e-12, it_max=4000)
 
 
-#afficher le champ produit
-plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
-plt.colorbar(label="|E| (V/m)")
+#----------------------------------------affichage du pm champ électrique q2---------------------#
 
-saut = 2
-#vecteur
-plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
-           Ex[::saut, ::saut], Ey[::saut, ::saut],
-           color='white', scale=60000)
+#plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
+#plt.colorbar(label="|E| (V/m)")
 
-plt.title("Champ électrique dans le tube photomultiplicateur")
+#saut = 2
+    #vecteurs
+#plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
+           #Ex[::saut, ::saut], Ey[::saut, ::saut],
+           #color='white', scale=60000)
+
+#plt.title("Champ électrique dans le tube photomultiplicateur")
+#plt.xlabel("x (mm)")
+#plt.ylabel("y (mm)")
+#plt.axis('equal')
+#plt.tight_layout()
+#plt.savefig("champ_PM.png", dpi=300)
+#plt.show()
+
+
+#----------------------------------------affichage de la trajectoire x(t)------------------------#
+plt.contourf(X, Y, V, levels=100, cmap='plasma')
+plt.plot(traj_, traj_y, 'b-', label="Trajectoire")
+plt.plot(x0, y0, 'go', label="Départ (0,0)")
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
-plt.axis('equal')
-plt.tight_layout()
-plt.savefig("champ_PM.png", dpi=300)
+plt.title("Q3b) Trajectoire d’un électron émis à (0, 0) avec vitesse nulle")
+plt.legend()
+plt.axis("equal")
+plt.savefig("Q3b_trajectoire.png", dpi=300)
 plt.show()
