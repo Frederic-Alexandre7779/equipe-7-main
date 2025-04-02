@@ -1,24 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import math
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 1, 4, 2, 0.2, 6
-N = 11
+a, b, c, d, e, f = 2, 2, 4, 2, 0.2, 6
+N = 4
 dx = 0.1 # step
 
+# -----------------------------Question 1------------------------------#
 
 largeur = (2*a + (N+1)*(c/2) + (N-1)*(d/2)) # trouvé en analysant l'image 
-Lx,Ly = largeur, f # grandeur de la grille en x et en y sans espacement autour du pm
-nx, ny = int(Lx/dx), int(Ly/dx) # nombre de points en x et en y
+Lx = largeur
+Ly = f # grandeur de la grille en x et en y sans espacement autour du pm
+nx = int(Lx/dx)
+ny = int(Ly/dx) # nombre de points en x et en y
 
 x = np.linspace(0, Lx, nx)
 y = np.linspace(-Ly/2, Ly/2, ny)
 X, Y = np.meshgrid(x, y)
 
 #initialiser le potentiel à 0 partout
-V = np.zeros((ny,nx)) # potentiel initial #------------------------------------------------------------
+V = np.zeros((ny,nx)) # potentiel initial
 bloqué = np.zeros((ny,nx), dtype=bool)
 
 
@@ -27,7 +30,7 @@ bloqué = np.zeros((ny,nx), dtype=bool)
 #f, b et e sont en x
 # a,c,d sont en y
 def placer_dynodes_bas(V, bloqué):
-    for i in range(N//2 + N%2): # 11//2 = 5 + 1
+    for i in range(N//2 + N%2):
         pot_dyn = (2*i+1) * 100
         vert_start = b #coordonnée verticale du début de la dynode
         vert_end = b + e # la fin
@@ -40,7 +43,7 @@ def placer_dynodes_bas(V, bloqué):
         iy_end = int(vert_end/dx) # fin y
 
         V[iy_start:iy_end, ix_start:ix_end] = pot_dyn
-        bloqué[iy_start:iy_end, ix_start:ix_end] = True #-------------
+        bloqué[iy_start:iy_end, ix_start:ix_end] = True
     return V, bloqué
 
 def placer_dynodes_haut(V, bloqué):
@@ -63,8 +66,7 @@ def placer_dynodes_haut(V, bloqué):
 V, bloqué = placer_dynodes_haut(V, bloqué)
 V, bloqué = placer_dynodes_bas(V, bloqué)
 
-# Relaxation
-# La variation minimale est établie à 10^-5 parce que c'est souvent ça dans d'autres problèmes
+# La variation minimale est établie à 10^-5 parce que 
 def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
     for iteration in range(max_iter):
         V_old = V.copy() # pour la comparaison pour la tolérance
@@ -82,38 +84,84 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-c = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
 
-#Afficher le PM
-#cp = plt.contourf(X, Y, c, levels=100, cmap="plasma")
-#plt.colorbar(cp, label="Potentiel (V)")
-#plt.title("Potentiel électrique dans le tube PM")
-#plt.xlabel("x (mm)")
-#plt.ylabel("y (mm)")
-#plt.axis('equal')
-#plt.tight_layout()
-#plt.savefig("potentiel_2r_PM.png", dpi=300)
-#plt.show()
+# --------------------------------------- Question 2 ---------------------------------#
 
 # calculer le gradient en x et y grâce à numpy
-Ey, Ex = np.gradient(-c, dx, dx)
+Ey, Ex = np.gradient(-V, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
-#afficher le champ produit
-plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
-plt.colorbar(label="|E| (V/m)")
+# ---------------------------------------- Question 3a--------------------------------#
 
-saut = 2
-#vecteur
-plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
-           Ex[::saut, ::saut], Ey[::saut, ::saut],
-           color='white', scale=6000)
+#implémenter une fonction de déterminer x(t) d'un électron
+#Conditions initiales applicables: x(t=0) et v(t=0)
 
-plt.title("Champ électrique dans le tube photomultiplicateur")
+#constantes physiques:
+q = -1.602*e-19 # charge de l'électron
+m = 9.109*e-31 # masse
+# F(x,y,z) = qE(x,y,z)
+# a = qE/m
+
+# Il faut approximer le champ entre les cases existantes avec euler pour des valeurs comme 0.25 ou 4.287
+def Eulerer_lechamp(x, y, Ex, Ey, dx):
+    # transformer la position en indice de row/colonne
+    i = int(y / dx)
+    j = int(x / dx)
+    # il faut créer une référence de grandeur pour savoir si on est dans la grille
+    ny, nx = Ex.shape
+    if 0 <= i < ny and 0 <= j < nx: # vérifier que c'est dans la grille que j'ai créée sinon ça marche pas
+        return Ex[i, j], Ey[i, j]
+    else:
+        return 0, 0 # si on n'est pas dans la grille, il n'y a pas de champ
+
+def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
+    #placer l'électron à t=0
+    x = [x0] # position à t=0
+    y = [y0]
+    vx = vx0 # vitesse à t=0
+    vy = vy0
+
+    for i in range(it_max):
+        # méthode d'Euler du champ au point courant
+        Ex_val, Ey_val = Eulerer_lechamp(x[-1], y[-1], Ex, Ey, dx)
+        #littéralement Euler:
+        ax = (q*Ex_val / m) # accélération en x
+        ay = (q*Ey_val / m)  # même chose en y
+
+        vx += ax * dt # changement infinitésimal de la vitesse
+        vy += ay * dt # même chose en y
+
+        x_new = x[-1] + vx * dt # changement infinitésimal de la position
+        y_new = y[-1] + vy * dt
+
+        x.append(x_new)
+        y.append(y_new)
+
+    return np.array(x), np.array(y)
+
+
+# ---------------------------------------Question 3b/c --------------------------------------------#
+lum = 3*10**8
+x0 = 0
+y0 = 0
+vx0 = 0
+vy0 = 0
+dt = 1e-12
+it_max = 5000
+traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)
+
+#----------------------------------------affichage de la trajectoire x(t)------------------------#
+plt.contourf(X, Y, V, levels=100, cmap='plasma')
+plt.plot(traj_x, traj_y, 'y-', label="Trajectoire")
+plt.plot(x0, y0, 'go', label="Départ (0,0)")
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
-plt.axis('equal')
-plt.tight_layout()
-plt.savefig("champ_PM.png", dpi=300)
+plt.title("Q3 b)")
+plt.legend()
+plt.axis("equal")
+plt.savefig("Q3b_trajectoire.png", dpi=300)
 plt.show()
+
+print("Position finale :", traj_x[-1], traj_y[-1])
+print("Déplacement total :", traj_x[-1] - traj_x[0], traj_y[-1] - traj_y[0])

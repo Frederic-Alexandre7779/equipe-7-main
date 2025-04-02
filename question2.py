@@ -14,7 +14,7 @@ Lx,Ly = largeur, f # grandeur de la grille en x et en y sans espacement autour d
 nx, ny = int(Lx/dx), int(Ly/dx) # nombre de points en x et en y
 
 x = np.linspace(0, Lx, nx)
-y = np.linspace(0, Ly, ny)
+y = np.linspace(-Ly/2, Ly/2, ny)
 X, Y = np.meshgrid(x, y)
 
 #initialiser le potentiel à 0 partout
@@ -46,7 +46,7 @@ def placer_dynodes_bas(V, bloqué):
 def placer_dynodes_haut(V, bloqué):
     for i in range(N//2):
         pot_dyn = (2*(i+1)) * 100
-        vert_start = f-b #coordonnée verticale du début de la dynode
+        vert_start = f-b-e #coordonnée verticale du début de la dynode
         vert_end = vert_start + e # la fin
         horiz_start = a + (i+1)*c +d/2 + i*d - c/2 #coordonnée horizontale du début de la dynode
         horiz_end = horiz_start + c # fin
@@ -65,7 +65,7 @@ V, bloqué = placer_dynodes_bas(V, bloqué)
 
 # Relaxation aka ce qui n'existe pas en gph sauf si t'es camille et tu bois en criss
 # La variation minimale est établie à 10^-5 parce que 
-def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
+def relaxation(V, bloqué, variation=1e-5, max_iter=10000):
     for iteration in range(max_iter):
         V_old = V.copy() # pour la comparaison pour la tolérance
         for i in range(1, ny-1): #tous les points sauf les bords
@@ -84,6 +84,7 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
     return V
 
 # calculer le gradient en x et y grâce à numpy
+print(V)
 Ey, Ex = np.gradient(-V, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
