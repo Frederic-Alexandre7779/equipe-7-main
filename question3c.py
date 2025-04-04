@@ -5,7 +5,7 @@ import numpy as np
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 2, 3, 2, 0.2, 6
+a, b, c, d, e, f = 2, 1, 3, 2, 0.2, 10
 N = 4
 dx = 0.1 # step
 
@@ -117,7 +117,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
 
 # ------------POsitionner les dynodes du haut et celles du bas avec leur valeur de potentiel ------#
 
-def position_dynodes_bas(i, a=2, b=2, c=3, d=2, e=0.2):
+def position_dynodes_bas(i, a=2, b=1, c=3, d=2, e=0.2):
     #dynodes_bas = []
     vert_start = b #coordonnée verticale du début de la dynode
     vert_end = b + e # la fin
@@ -128,7 +128,7 @@ def position_dynodes_bas(i, a=2, b=2, c=3, d=2, e=0.2):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 
-def position_dynodes_haut(i, a=2, b=2, c=3, d=2, e=0.2, f=6):
+def position_dynodes_haut(i, a=2, b=1, c=3, d=2, e=0.2, f=10):
     #dynodes_haut = []
     vert_start = f-b #coordonnée verticale du début de la dynode
     vert_end = vert_start - e # la fin
@@ -145,9 +145,9 @@ def contact_dyn_bas(x_new, y_new, x_old, y_old):#, dynodes_bas):
     if y_new <= 0:
         pente = y_new - y_old / x_new - x_old
         for i in range (N//2 + N%2):
-            dynodes_bas = position_dynodes_bas(i, a=2, b=2, c=3, d=2, e=0.2)
+            dynodes_bas = position_dynodes_bas(i, a=2, b=1, c=3, d=2, e=0.2)
             if x_new <= dynodes_bas[3] and x_old >= dynodes_bas[2]:
-                if y_new <= dynodes_bas[1] and y_old >= dynodes_bas[0]:
+                if y_new <= dynodes_bas[1] and y_old >= dynodes_bas[1]:
                     x_new = dynodes_bas[1]/pente
                     y_new = dynodes_bas[1]
                     return True
@@ -171,13 +171,13 @@ def contact_dyn_haut(x_new, y_new, x_old, y_old):#, dynodes_haut):
     if y_new >= 0:
         pente = y_new - y_old / x_new - x_old
         for i in range (N//2):
-            dynodes_haut = position_dynodes_haut(i, a=2, b=2, c=3, d=2, e=0.2, f=6)
+            dynodes_haut = position_dynodes_haut(i, a=2, b=1, c=3, d=2, e=0.2, f=10)
             if x_new <= dynodes_haut[3] and x_old >= dynodes_haut[2]:
-                if y_new <= dynodes_haut[0] and y_old >= dynodes_haut[1]:
+                if y_new <= dynodes_haut[0] and y_old >= dynodes_haut[0]:
                     x_new = dynodes_haut[1]/pente
                     y_new = dynodes_haut[1]
                     return True
-                if dynodes_haut[1] <= y_new <= dynodes_haut[0] and y_old <= dynodes_haut[1]:
+                if dynodes_haut[1] <= y_new <= dynodes_haut[0] and y_old <= dynodes_haut[0]:
                     x_new = dynodes_haut[1]/pente
                     y_new = dynodes_haut[1]
                     return True
