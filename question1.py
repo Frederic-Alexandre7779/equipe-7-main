@@ -82,7 +82,7 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-res = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
+res = relaxation(V, bloqué, variation=1e-5, max_iter=3000)
 
 #Afficher le PM
 cp = plt.contourf(X, Y, res, levels=100, cmap="plasma")

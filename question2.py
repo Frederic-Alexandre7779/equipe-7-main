@@ -82,22 +82,24 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=10000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
+res = relaxation(V, bloqué, variation=1e-5, max_iter=3000)
 
 # calculer le gradient en x et y grâce à numpy
-print(V)
-Ey, Ex = np.gradient(-V, dx, dx)
+
+Ey, Ex = np.gradient(-res, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
 #afficher le champ produit
 plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
+
 plt.colorbar(label="|E| (V/m)")
 
 saut = 2
 #vecteur
 plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
            Ex[::saut, ::saut], Ey[::saut, ::saut],
-           color='white', scale=60000)
+           color='white', scale=10000)
 
 plt.title("Champ électrique dans le tube photomultiplicateur")
 plt.xlabel("x (mm)")
