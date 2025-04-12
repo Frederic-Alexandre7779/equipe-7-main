@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
@@ -67,7 +66,7 @@ V, bloqué = placer_dynodes_haut(V, bloqué)
 V, bloqué = placer_dynodes_bas(V, bloqué)
 
 # La variation minimale est établie à 10^-5 parce que 
-def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
+def relaxation(V, bloqué, variation=1e-5, max_iter=1000):
     for iteration in range(max_iter):
         V_old = V.copy() # pour la comparaison pour la tolérance
         for i in range(1, ny-1): #tous les points sauf les bords
@@ -84,13 +83,7 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-
-# --------------------------------------- Question 2 ---------------------------------#
-
-# calculer le gradient en x et y grâce à numpy
-Ey, Ex = np.gradient(-V, dx, dx)
-
-E_norm = np.sqrt(Ex**2 + Ey**2) #norme
+res = relaxation(V, bloqué, variation=1e-5, max_iter=3000)
 
 # ---------------------------------------- Question 3a--------------------------------#
 
@@ -137,6 +130,9 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
 
         x.append(x_new)
         y.append(y_new)
-
+        
+        if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
+            print("L'électron a crissé son camp")
+            break #enfin ça va être moins chiant
     return np.array(x), np.array(y)
 

@@ -84,11 +84,11 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-
+res = relaxation(V, bloqué, variation=1e-5, max_iter=3000)
 # --------------------------------------- Question 2 ---------------------------------#
 
 # calculer le gradient en x et y grâce à numpy
-Ey, Ex = np.gradient(-V, dx, dx)
+Ey, Ex = np.gradient(-res, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
@@ -103,7 +103,7 @@ m = 9.109*e-31 # masse
 # F(x,y,z) = qE(x,y,z)
 # a = qE/m
 
-# Il faut approximer le champ entre les cases existantes avec euler pour des valeurs comme 0.25 ou 4.287
+# Il faut approximer le champ entre les cases existantes avec euler pour des valeurs
 def Eulerer_lechamp(x, y, Ex, Ey, dx):
     # transformer la position en indice de row/colonne
     i = int(y / dx)
@@ -138,21 +138,26 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
         x.append(x_new)
         y.append(y_new)
 
+        if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
+            print("L'électron n'est plus dans le tube PM")
+            break #enfin ça va être moins chiant
     return np.array(x), np.array(y)
 
 
-# ---------------------------------------Question 3b/c --------------------------------------------#
-lum = 3*10**8
-x0 = 0
-y0 = 0
+# ---------------------------------------Question 3b --------------------------------------------#
+
+x0 = 0.1
+y0 = 0.1
 vx0 = 0
 vy0 = 0
-dt = 1e-12
-it_max = 5000
+dt = 1e-5
+it_max = 1000000
 traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)
 
 #----------------------------------------affichage de la trajectoire x(t)------------------------#
-plt.contourf(X, Y, V, levels=100, cmap='plasma')
+cp = plt.contourf(X, Y, res, levels=100, cmap='plasma')
+contour_dynodes = plt.contour(X, Y, bloqué, levels=[0.5], colors='black', linewidths=0.5)
+plt.colorbar(cp, label="Potentiel (V)")
 plt.plot(traj_x, traj_y, 'y-', label="Trajectoire")
 plt.plot(x0, y0, 'go', label="Départ (0,0)")
 plt.xlabel("x (mm)")
