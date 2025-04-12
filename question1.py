@@ -4,8 +4,8 @@ import numpy as np
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 1, 4, 2, 0.2, 6
-N = 11
+a, b, c, d, e, f = 3, 2, 4, 2, 0.2, 6
+N = 4
 dx = 0.1 # step
 
 
@@ -75,45 +75,25 @@ def relaxation(V, bloqué, variation=1e-5, max_iter=1000000):
                                      V_old[i, j+1] + V_old[i, j-1])
         chang_pot_max = np.max(np.abs(V - V_old))
         if chang_pot_max < variation:
-            print(f"Convergence atteinte après {iteration} itérations avec une tolérance de variation de {variation})")
+            print(f"Convergence atteinte après {iteration} itérations avec une tolérance de variation de {variation}")
             print("Nous avons atteint un potentiel qui ne varie presque plus et le problème est considéré résolu")
             break
     else:
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-c = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
+res = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
 
 #Afficher le PM
-#cp = plt.contourf(X, Y, c, levels=100, cmap="plasma")
-#plt.colorbar(cp, label="Potentiel (V)")
-#plt.title("Potentiel électrique dans le tube PM")
-#plt.xlabel("x (mm)")
-#plt.ylabel("y (mm)")
-#plt.axis('equal')
-#plt.tight_layout()
-#plt.savefig("potentiel_2r_PM.png", dpi=300)
-#plt.show()
+cp = plt.contourf(X, Y, res, levels=100, cmap="plasma")
+# On ajoute le contour des dynodes pour être propre
+contour_dynodes = plt.contour(X, Y, bloqué, levels=[0.5], colors='black', linewidths=1)
 
-# calculer le gradient en x et y grâce à numpy
-Ey, Ex = np.gradient(-c, dx, dx)
-
-E_norm = np.sqrt(Ex**2 + Ey**2) #norme
-
-#afficher le champ produit
-plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
-plt.colorbar(label="|E| (V/m)")
-
-saut = 2
-#vecteur
-plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
-           Ex[::saut, ::saut], Ey[::saut, ::saut],
-           color='white', scale=6000)
-
-plt.title("Champ électrique dans le tube photomultiplicateur")
+plt.colorbar(cp, label="Potentiel (V)")
+plt.title("Potentiel électrique dans le tube PM")
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
 plt.axis('equal')
 plt.tight_layout()
-plt.savefig("champ_PM.png", dpi=300)
+plt.savefig("potentiel_2r_PM.png", dpi=300)
 plt.show()

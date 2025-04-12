@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import animation
 
 
 
@@ -209,6 +210,45 @@ it_max = 10000
 dynodes_bas = position_dynodes_bas(dx)
 dynodes_haut = position_dynodes_haut(dx)
 traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max, dynodes_bas, dynodes_haut)
+
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Fond du champ électrique
+cp = ax.contourf(X, Y, E_norm, levels=100, cmap='plasma')
+plt.colorbar(cp, label="|E| (V/m)")
+
+# Champ électrique (vecteurs blancs)
+saut = 2
+ax.quiver(X[::saut, ::saut], Y[::saut, ::saut], Ex[::saut, ::saut], Ey[::saut, ::saut], color='white', scale=6000)
+
+# Ligne de la trajectoire (vide au début)
+line, = ax.plot([], [], 'y-', label="Trajectoire de l'électron")
+point, = ax.plot([], [], 'go')  # point de l'électron
+
+# Mise en forme du graphique
+ax.set_xlim(0, Lx)
+ax.set_ylim(-Ly/2, Ly/2)
+ax.set_xlabel("x (mm)")
+ax.set_ylabel("y (mm)")
+ax.set_title("Animation de la trajectoire de l'électron")
+ax.legend()
+ax.axis('equal')
+
+# Fonction pour mettre à jour l'animation à chaque frame
+def update(frame):
+    line.set_data(traj_x[:frame], traj_y[:frame])  # Trace la trajectoire jusqu'au frame courant
+    point.set_data(traj_x[frame-1], traj_y[frame-1])  # Place le point sur la position actuelle
+    return line, point
+
+# Créer l'animation
+ani = animation.FuncAnimation(fig, update, frames=len(traj_x), interval=10, blit=True)
+
+# Sauvegarder en mp4 (optionnel)
+# ani.save('animation_trajectoire.mp4', writer='ffmpeg', fps=60)
+
+plt.show()
+
 
 #----------------------------------------affichage de la trajectoire x(t) premier attempt------------------------#
 
