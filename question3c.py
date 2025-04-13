@@ -1,14 +1,14 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import animation
 
 
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 2, 3, 2, 0.2, 10
+a, b, c, d, e, f = 4, 2, 4, 5, 0.2, 10
 N = 4
-dx = 0.01 # step
+dx = 0.1 # step
 
 
 largeur = (2*a + (N+1)*(c/2) + (N-1)*(d/2)) # trouvé en analysant l'image
@@ -48,7 +48,7 @@ def placer_dynodes_bas(V, bloqué):
 def placer_dynodes_haut(V, bloqué):
     for i in range(N//2):
         pot_dyn = (2*(i+1)) * 100
-        vert_start = f-b #coordonnée verticale du début de la dynode
+        vert_start = f-b-e #coordonnée verticale du début de la dynode
         vert_end = vert_start + e # la fin
         horiz_start = a + (i+1)*c +d/2 + i*d - c/2 #coordonnée horizontale du début de la dynode
         horiz_end = horiz_start + c # fin
@@ -118,7 +118,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
 
 # ------------POsitionner les dynodes du haut et celles du bas avec leur valeur de potentiel ------#
 
-def position_dynodes_bas(i, a=2, b=2, c=3, d=2, e=0.2, f=10):
+def position_dynodes_bas(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
     #dynodes_bas = []
     vert_start = -f*0.5 + b #coordonnée verticale du début de la dynode
     vert_end = vert_start + e # la fin
@@ -129,7 +129,7 @@ def position_dynodes_bas(i, a=2, b=2, c=3, d=2, e=0.2, f=10):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 
-def position_dynodes_haut(i, a=2, b=2, c=3, d=2, e=0.2, f=10):
+def position_dynodes_haut(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
     #dynodes_haut = []
     vert_start = f*0.5 - b #coordonnée verticale du début de la dynode
     vert_end = vert_start - e # la fin
@@ -140,60 +140,138 @@ def position_dynodes_haut(i, a=2, b=2, c=3, d=2, e=0.2, f=10):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 #-----------------après ces 2 fonctions, on a 4 coordonnées des côtés des rectangles créé par les dynodes soit du haut ou du bas -----#
+
+
 #-----------------maintenant on défini s'il y a un contact avec les dynodes ------------------#
 
-def contact_dyn_bas(x_new, y_new, x_old, y_old):#, dynodes_bas):
-    a, b, c, d, e, f = 2, 2, 3 ,2 ,0.2, 10
-    if y_new < 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
-        pente = (y_new - y_old) / (x_new - x_old)
-        for i in range (N//2 + N%2):
-            dynodes_bas = position_dynodes_bas(i, a, b, c, d, e, f)
-            if x_new <= dynodes_bas[3] and x_old >= dynodes_bas[2]:
-                if y_new <= dynodes_bas[1]:
-                    x_dyn = dynodes_bas[1]/pente + x_new
-                    y_dyn = dynodes_bas[1]
-                    return [True, x_dyn, y_dyn]
-            if x_new >= dynodes_bas[2] and x_old <= dynodes_bas[2]:
-                if dynodes_bas[1]/pente >= dynodes_bas[2]:
-                    x_dyn = dynodes_bas[1]/pente + x_new
-                    y_dyn = dynodes_bas[1]
-                    return [True, x_dyn, y_dyn]
-            if x_new >= dynodes_bas[3] and x_old <= dynodes_bas[3]:
-                if dynodes_bas[1]/pente <= dynodes_bas[3]:
-                    x_dyn = dynodes_bas[1]/pente + x_new
-                    y_dyn = dynodes_bas[1]
-                    return  [True, x_dyn, y_dyn]
-    return [False, x_new, y_new]
 
-def contact_dyn_haut(x_new, y_new, x_old, y_old):#, dynodes_haut):
-    a, b, c, d, e, f = 2, 2, 3 ,2 ,0.2, 10
-    if y_new > 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
-        pente = y_new - y_old / x_new - x_old
+def contact_dyn_bas(x_new, y_new, x_old, y_old):
+    a, b, c, d, e, f = 4, 2, 4 ,5 ,0.2, 10
+    N = 4
+    # Juste pour être sûr d,avoir les bonnes dimensions
+
+    if -f/2 < y_new < 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
+        # Regarde si les données envoyées par la fonction de l'électron sont dans le PM
+
+        pente = (y_new - y_old) / (x_new - x_old) # pente de la droite entre les 2 points
+        y_initiale = -(pente*x_old - y_old) # trouve le b de y = mx + b
+
+        for i in range (N//2 + N%2):
+            # On initialise les dynodes avec leurs positions en mm
+            dynodes_bas = position_dynodes_bas(i, a, b, c, d, e, f)
+
+            if y_new <= dynodes_bas[1]: # On s'assure que le nouveau point est en bas de la dynode
+
+                if x_new <= dynodes_bas[3] and x_old >= dynodes_bas[2]:
+                    # Regarde si le point en x est au milieu d'une dynode
+
+                        x_dyn = (dynodes_bas[1] - y_initiale)/pente # Trouve le x en haut de la dynode
+                        y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
+
+                        return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                
+                if x_new >= dynodes_bas[2] and x_old <= dynodes_bas[2]:
+                    # Regarde si la pente passe à gauche de la dynode
+
+                    if (dynodes_bas[0] - y_initiale)/pente >= dynodes_bas[2]:
+                        # Regarde si la dynode est croisée tout court
+
+                        if (dynodes_bas[1] - y_initiale)/pente <= dynodes_bas[2]:
+                            # Si la dynode est croisée en haut
+
+                            x_dyn = dynodes_bas[2] # Trouve le x en haut de la dynode (Frappe à gauche)
+                            y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
+
+                            return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+
+                        if (dynodes_bas[1] - y_initiale)/pente >= dynodes_bas[2]:
+                            # Si la dynode est croisée en bas
+
+                            x_dyn = (dynodes_bas[1] - y_initiale)/pente # Trouve le x en haut de la dynode
+                            y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
+
+                            return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                    
+                if x_new >= dynodes_bas[3] and x_old <= dynodes_bas[3]:
+                    # Regarde si la pente passe à droite de la dynode
+
+                    if (dynodes_bas[1] - y_initiale)/pente <= dynodes_bas[3]:
+                        # Si la dynode est croisée en haut
+
+                        x_dyn = (dynodes_bas[1] - y_initiale)/pente # Trouve le x en haut de la dynode
+                        y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
+
+                        return  [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                
+    return [False, x_new, y_new] # Si il n'y a pas de contact, on retourne la position d'origine et False
+
+
+def contact_dyn_haut(x_new, y_new, x_old, y_old):
+    a, b, c, d, e, f = 4, 2, 4 ,5 ,0.2, 10
+    N = 4
+    # Juste pour être sûr d'avoir les bonnes dimensions
+
+    if f/2 > y_new > 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
+        # Regarde si les données envoyées par la fonction de l'électron sont dans le PM
+
+        pente = (y_new - y_old) / (x_new - x_old) # pente de la droite entre les 2 points
+        y_initiale = -(pente*x_old - y_old) # trouve le b de y = mx + b
+
         for i in range (N//2):
+            # On initialise les dynodes avec leurs positions en mm
             dynodes_haut = position_dynodes_haut(i, a, b, c, d, e, f)
-            if x_new <= dynodes_haut[3] and x_old >= dynodes_haut[2]:
-                if y_new >= dynodes_haut[1]:
-                    x_dyn = dynodes_haut[1]/pente + x_new
-                    y_dyn = dynodes_haut[1]
-                    return [True, x_dyn, y_dyn]
-            if x_new >= dynodes_haut[2] and x_old <= dynodes_haut[2]:
-                if dynodes_haut[1]/pente >= dynodes_haut[2]:
-                    x_dyn = dynodes_haut[1]/pente + x_new
-                    y_dyn = dynodes_haut[1]
-                    return [True, x_dyn, y_dyn]
-            if x_new >= dynodes_haut[3] and x_old <= dynodes_haut[3]:
-                if dynodes_haut[1]/pente <= dynodes_haut[3]:
-                    x_dyn = dynodes_haut[1]/pente + x_new
-                    y_dyn = dynodes_haut[1]
-                    return [True, x_dyn, y_dyn]
-    return [False, x_new, y_new]
+
+            if y_new >= dynodes_haut[1]: # On s'assure que le nouveau point est en haut de la dynode
+
+                if x_new <= dynodes_haut[3] and x_old >= dynodes_haut[2]:
+                    # Regarde si le point en x est au milieu d'une dynode
+
+                    x_dyn = (dynodes_haut[1] - y_initiale)/pente # Trouve le x de croisement en haut de la dynode
+                    y_dyn = dynodes_haut[1] # on remet le y à la hauteur centrale de la dynode
+
+                    return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                
+                if x_new >= dynodes_haut[2] and x_old <= dynodes_haut[2]:
+                 # Regarde si la pente passe à gauche de la dynode
+
+                    if (dynodes_haut[0] - y_initiale)/pente >= dynodes_haut[2]:
+                        # Regarde si la dynode est croisée tout court
+
+                        if (dynodes_haut[1] - y_initiale)/pente >= dynodes_haut[2]:
+                            # Si la dynode est croisée en haut
+
+                            x_dyn = (dynodes_haut[1] - y_initiale)/pente # Trouve le x en haut de la dynode
+                            y_dyn = dynodes_haut[1] # on remet le y à la hauteur centrale de la dynode
+
+                            return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                    
+                        if (dynodes_haut[1] - y_initiale)/pente <= dynodes_haut[2]:
+                            # Si la dynode est croisée en bas
+
+                            x_dyn = dynodes_haut[2] # Trouve le x en bas de la dynode (Frappe à gauche)
+                            y_dyn = dynodes_haut[1] # on remet le y à la hauteur centrale de la dynode
+
+                            return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                    
+                if x_new >= dynodes_haut[3] and x_old <= dynodes_haut[3]:
+                    # Regarde si la pente passe à droite de la dynode
+
+                    if (dynodes_haut[1] - y_initiale)/pente <= dynodes_haut[3]:
+                        # Si la dynode est croisée en bas
+
+                        x_dyn = (dynodes_haut[1] - y_initiale)/pente # Trouve le x en bas de la dynode
+                        y_dyn = dynodes_haut[1] # on remet le y à la hauteur centrale de la dynode
+
+                        return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                    
+    return [False, x_new, y_new] # Si il n'y a pas de contact, on retourne la position d'origine et False
 
 # -------- là j'ai fait 2 fonctions qui dise s'il y a un contact avec un dynodes --------# 
 
 
 def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynodes_haut):
     q = -1.602*10e-19 # charge de l'électron
-    m = 9.109*10e-31 # masse
+    m = 9.109*10e-31 # masse de l'électron
     #placer l'électron à t=0
     x = [x0] # position à t=0
     y = [y0]
@@ -213,7 +291,9 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
     x_new = float(x0 + (vx * dt)) # changement infinitésimal de la position
 
     for _ in range(it_max):
-        print(x_new, y_new)
+
+        print(x_new, y_new) # pour voir si ça bouge comme il faut
+
         Ex_val, Ey_val = Eulerer_lechamp(x_new, y_new, Ex, Ey, dx) #change la valeur du champ mais ne marche pas en x
 
         ax = (q*Ex_val / m) # accélération en x
@@ -225,45 +305,77 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
         contact_bas = contact_dyn_bas(x_new, y_new, x[_], y[_])
         contact_haut = contact_dyn_haut(x_new, y_new, x[_], y[_])
 
-        # on regarde s'il y a un contact avec celles du bas:
-        if contact_bas[0] is True:#, dynodes_bas):
-            x_new = contact_bas[1]
-            y_new = contact_bas[2] + 2 # rebondi de 2mm vers le haut
-            vy = -vy # la vitesse part dans l'autre sens pour les prochains calculs
-            print(f"Rebond dynode BAS à [x,y] = [{x_new}{y_new}]")
-            print("La vitesse a été inversé et la position a AUGMENTÉ de 2mm")
-
-        # on regarde s'il y a un contact avec celles du haut :
-        if contact_haut[0] is True:#, dynodes_haut):
-            x_new = contact_haut[1]
-            y_new = contact_haut[2] - 2
-            vy = -vy
-            print(f"Rebond dynode HAUT à [x,y] = [{x_new}{y_new}]")
-            print("La vitesse a été inversé et la position a DIMINUÉ de 2mm")
-
         x.append(x_new)
         y.append(y_new)
 
-        #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
-        #faiq je rajoute une condition qui l'oblige à rester dans le PM
-        if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
-            print("L'électron a crissé son camp")
-            break #enfin ça va être moins chiant
+        # on regarde s'il y a un contact avec celles du bas:
+        if contact_bas[0] is True:
+
+            x_new = contact_bas[1]
+            y_new = contact_bas[2]
+
+            x.append(x_new) # on ajoute le x et y au contact
+            y.append(y_new)
+
+            print(f"Rebond dynode BAS à [x,y] = [{x_new}, {y_new}]")
+            print("La vitesse a été inversé et la position a AUGMENTÉ de 2mm")
+
+            y_new += 2 # on rebondi de 2mm vers le haut
+            vy = -vy # la vitesse part dans l'autre sens pour les prochains calculs
+
+            x.append(x_new) # ajoute le x et y après rebond
+            y.append(y_new)
+
+            #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
+            #faiq je rajoute une condition qui l'oblige à rester dans le PM
+            if not (0 <= x_new < largeur and abs(y_new) < Ly/2):
+                print("L'électron a crissé son camp")
+                break #enfin ça va être moins chiant
+
+        # on regarde s'il y a un contact avec celles du haut :
+        if contact_haut[0] is True:
+
+            x_new = contact_haut[1]
+            y_new = contact_haut[2]
+
+            x.append(x_new) # on ajoute le x et y au contact
+            y.append(y_new)
+
+            print(f"Rebond dynode HAUT à [x,y] = [{x_new}, {y_new}]")
+            print("La vitesse a été inversé et la position a DIMINUÉ de 2mm")
+
+            y_new -= 2 # on rebondi de 2mm vers le bas
+            vy = -vy
+
+            x.append(x_new) # on ajoute le x et y au rebond
+            y.append(y_new)
+
+            #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
+            #faiq je rajoute une condition qui l'oblige à rester dans le PM
+            if not (0 <= x_new < largeur and abs(y_new) < Ly/2):
+                print("L'électron a crissé son camp")
+                break #enfin ça va être moins chiant
 
         y_new = float(y_new + (vy * dt))
         x_new = float(x_new + (vx * dt)) # changement infinitésimal de la position
 
+        #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
+        #faiq je rajoute une condition qui l'oblige à rester dans le PM
+        if not (0 <= x_new < largeur and abs(y_new) < Ly/2):
+            print("L'électron a crissé son camp")
+            break #enfin ça va être moins chiant
+        
     return np.array(x), np.array(y)
 
 
 # ---------------------------------------Question 3b/c --------------------------------------------#
 
-x0 = 2
+x0 = 1
 y0 = 0
-vx0 = 3
+vx0 = 0
 vy0 = 0
-dt = 0.0001
-it_max = 10000
+dt = 0.00000001
+it_max = 50000
 #dynodes_bas = position_dynodes_bas()
 #dynodes_haut = position_dynodes_haut()
 traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)#, dynodes_bas, dynodes_haut)
@@ -299,7 +411,7 @@ def update(frame):
     return line, point
 
 # Créer l'animation
-ani = animation.FuncAnimation(fig, update, frames=len(traj_x), interval=10, blit=True)
+#ani = animation.FuncAnimation(fig, update, frames=len(traj_x), interval=10, blit=True)
 
 # Sauvegarder en mp4 (optionnel)
 # ani.save('animation_trajectoire.mp4', writer='ffmpeg', fps=60)
