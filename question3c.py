@@ -6,7 +6,7 @@ from matplotlib import animation
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 4, 2, 4, 5, 0.2, 10
+a, b, c, d, e, f = 2, 2, 5, 5, 0.2, 10
 N = 4
 dx = 0.1 # step
 
@@ -118,7 +118,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
 
 # ------------POsitionner les dynodes du haut et celles du bas avec leur valeur de potentiel ------#
 
-def position_dynodes_bas(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
+def position_dynodes_bas(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
     #dynodes_bas = []
     vert_start = -f*0.5 + b #coordonnée verticale du début de la dynode
     vert_end = vert_start + e # la fin
@@ -129,7 +129,7 @@ def position_dynodes_bas(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 
-def position_dynodes_haut(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
+def position_dynodes_haut(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
     #dynodes_haut = []
     vert_start = f*0.5 - b #coordonnée verticale du début de la dynode
     vert_end = vert_start - e # la fin
@@ -146,7 +146,7 @@ def position_dynodes_haut(i, a=4, b=2, c=4, d=5, e=0.2, f=10):
 
 
 def contact_dyn_bas(x_new, y_new, x_old, y_old):
-    a, b, c, d, e, f = 4, 2, 4 ,5 ,0.2, 10
+    a, b, c, d, e, f = 2, 2, 5 ,5 ,0.2, 10
     N = 4
     # Juste pour être sûr d,avoir les bonnes dimensions
 
@@ -207,7 +207,7 @@ def contact_dyn_bas(x_new, y_new, x_old, y_old):
 
 
 def contact_dyn_haut(x_new, y_new, x_old, y_old):
-    a, b, c, d, e, f = 4, 2, 4 ,5 ,0.2, 10
+    a, b, c, d, e, f = 2, 2, 5 ,5 ,0.2, 10
     N = 4
     # Juste pour être sûr d'avoir les bonnes dimensions
 
@@ -326,12 +326,6 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
             x.append(x_new) # ajoute le x et y après rebond
             y.append(y_new)
 
-            #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
-            #faiq je rajoute une condition qui l'oblige à rester dans le PM
-            if not (0 <= x_new < largeur and abs(y_new) < Ly/2):
-                print("L'électron a crissé son camp")
-                break #enfin ça va être moins chiant
-
         # on regarde s'il y a un contact avec celles du haut :
         if contact_haut[0] is True:
 
@@ -350,14 +344,12 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
             x.append(x_new) # on ajoute le x et y au rebond
             y.append(y_new)
 
-            #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
-            #faiq je rajoute une condition qui l'oblige à rester dans le PM
-            if not (0 <= x_new < largeur and abs(y_new) < Ly/2):
-                print("L'électron a crissé son camp")
-                break #enfin ça va être moins chiant
-
         y_new = float(y_new + (vy * dt))
         x_new = float(x_new + (vx * dt)) # changement infinitésimal de la position
+
+        if x_new > largeur and abs(y_new) < Ly/2: #Regarde si l'électron à finit son trajet
+            print("L'électron à passé le photomultiplicateur au complet :)")
+            break 
 
         #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
         #faiq je rajoute une condition qui l'oblige à rester dans le PM
