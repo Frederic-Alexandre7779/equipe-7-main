@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import animation
+#from matplotlib import animation
 
 
 
@@ -48,8 +48,8 @@ def placer_dynodes_bas(V, bloqué):
 def placer_dynodes_haut(V, bloqué):
     for i in range(N//2):
         pot_dyn = (2*(i+1)) * 100
-        vert_start = f-b-e #coordonnée verticale du début de la dynode
-        vert_end = vert_start + e # la fin
+        vert_start = f-b #coordonnée verticale du début de la dynode
+        vert_end = vert_start - e # la fin
         horiz_start = a + (i+1)*c +d/2 + i*d - c/2 #coordonnée horizontale du début de la dynode
         horiz_end = horiz_start + c # fin
 
@@ -118,7 +118,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
 
 # ------------POsitionner les dynodes du haut et celles du bas avec leur valeur de potentiel ------#
 
-def position_dynodes_bas(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
+def position_dynodes_bas(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
     #dynodes_bas = []
     vert_start = -f*0.5 + b #coordonnée verticale du début de la dynode
     vert_end = vert_start + e # la fin
@@ -129,7 +129,7 @@ def position_dynodes_bas(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 
-def position_dynodes_haut(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
+def position_dynodes_haut(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
     #dynodes_haut = []
     vert_start = f*0.5 - b #coordonnée verticale du début de la dynode
     vert_end = vert_start - e # la fin
@@ -146,8 +146,8 @@ def position_dynodes_haut(i, a=2, b=2, c=5, d=5, e=0.2, f=10):
 
 
 def contact_dyn_bas(x_new, y_new, x_old, y_old):
-    a, b, c, d, e, f = 2, 2, 5 ,5 ,0.2, 10
-    N = 4
+    a, b, c, d, e, f = 2, 2, 5 ,6 ,0.2, 10
+    N = 5
     # Juste pour être sûr d,avoir les bonnes dimensions
 
     if -f/2 < y_new < 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
@@ -165,10 +165,10 @@ def contact_dyn_bas(x_new, y_new, x_old, y_old):
                 if x_new <= dynodes_bas[3] and x_old >= dynodes_bas[2]:
                     # Regarde si le point en x est au milieu d'une dynode
 
-                        x_dyn = (dynodes_bas[1] - y_initiale)/pente # Trouve le x en haut de la dynode
-                        y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
+                    x_dyn = (dynodes_bas[1] - y_initiale)/pente # Trouve le x en haut de la dynode
+                    y_dyn = dynodes_bas[1] # on remet le y à la hauteur centrale de la dynode
 
-                        return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
+                    return [True, x_dyn, y_dyn] # Retourne la nouvelle position et True
                 
                 if x_new >= dynodes_bas[2] and x_old <= dynodes_bas[2]:
                     # Regarde si la pente passe à gauche de la dynode
