@@ -65,7 +65,6 @@ def placer_dynodes_haut(V, bloqué):
 V, bloqué = placer_dynodes_haut(V, bloqué)
 V, bloqué = placer_dynodes_bas(V, bloqué)
 
-# Relaxation
 # La variation minimale est établie à 10^-5 parce que c'est souvent ça dans d'autres problèmes
 def relaxation(V, bloqué, variation= 1e-5, max_iter=1000000):
     for iteration in range(max_iter):
@@ -109,6 +108,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
         ix = int(i + ny*0.5)
     if i > 0:
         ix = int(i + ny*0.5)
+    
     if 0 <= ix <= ny and 0 <= j <= nx: # vérifier que c'est dans la grille que j'ai créée sinon ça marche pas
         return Ex[ix, j], Ey[ix, j]
     else:
@@ -247,7 +247,7 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
         #Là je suis tanné de faire des test avec l'électron qui sacre son camp en dehors du PM
         #faiq je rajoute une condition qui l'oblige à rester dans le PM
         if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
-            print("L'électron a crissé son camp")
+            print("L'électron est sorti du tube PM")
             break #enfin ça va être moins chiant
 
         y_new = float(y_new + (vy * dt))
