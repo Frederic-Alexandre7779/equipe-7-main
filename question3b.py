@@ -1,5 +1,7 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
