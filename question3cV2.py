@@ -1,11 +1,9 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 
 # ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 2, 4, 2, 0.2, 6
+a, b, c, d, e, f = 0.2, 2, 4, 2, 0.2, 6
 N = 4
 dx = 0.1 # step
 
@@ -115,58 +113,131 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
         return Ex[i, j], Ey[i, j]
     else:
         return 0, 0 # si on n'est pas dans la grille, il n'y a pas de champ
+    
+# FOnction pour tracer des segments
+def ccw(A, B, C):
+    """Teste si trois points sont en ordre anti-horaire."""
+    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
 
-def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):
-    #placer l'électron à t=0
-    x = [x0] # position à t=0
+def segments_intersect(A, B, C, D):
+    """Teste si les segments AB et CD se croisent."""
+    return (ccw(A, C, D) != ccw(B, C, D)) and (ccw(A, B, C) != ccw(A, B, D))
+
+def segment_intersect_rectangle(x_old, y_old, x_new, y_new, x_start, x_end, y_start, y_end):
+    """Teste si le segment (x_old,y_old)-(x_new,y_new) croise un rectangle correctement défini."""
+    A = (x_old, y_old)
+    B = (x_new, y_new)
+    
+    rect_sides = [
+        ((x_start, y_start), (x_end, y_start)),  # bas
+        ((x_end, y_start), (x_end, y_end)),      # droite
+        ((x_end, y_end), (x_start, y_end)),      # haut
+        ((x_start, y_end), (x_start, y_start))   # gauche
+    ]
+    
+    for C, D in rect_sides:
+        if segments_intersect(A, B, C, D):
+            return True
+    return False
+
+
+
+def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max, a, b, c, d, e, f, N):
+    x = [x0]
     y = [y0]
-    vx = vx0 # vitesse à t=0
+    vx = vx0
     vy = vy0
 
-    for i in range(it_max):
-        # méthode d'Euler du champ au point courant
+    # Correction ici : les dynodes sont (x_start, x_end, y_start, y_end)
+    positions_dynodes_bas = []
+    positions_dynodes_haut = []
+
+    for i in range(N//2 + N%2):
+        x_start = a + i*(c+d)
+        x_end = x_start + c
+        y_start = b
+        y_end = b + e
+        positions_dynodes_bas.append((x_start, x_end, y_start, y_end))
+
+    for i in range(N//2):
+        x_start = a + (i+1)*c + d/2 + i*d - c/2
+        x_end = x_start + c
+        y_start = f-b
+        y_end = y_start + e
+        positions_dynodes_haut.append((x_start, x_end, y_start, y_end))
+
+    for _ in range(it_max):
         Ex_val, Ey_val = Eulerer_lechamp(x[-1], y[-1], Ex, Ey, dx)
-        #littéralement Euler:
-        ax = (q*Ex_val / m) # accélération en x
-        ay = (q*Ey_val / m)  # même chose en y
 
-        vx += ax * dt # changement infinitésimal de la vitesse
-        vy += ay * dt # même chose en y
+        ax = (q*Ex_val / m)
+        ay = (q*Ey_val / m)
 
-        x_new = x[-1] + vx * dt # changement infinitésimal de la position
-        y_new = y[-1] + vy * dt
+        vx += ax * dt
+        vy += ay * dt
+
+        x_old = x[-1]
+        y_old = y[-1]
+
+        x_new = x_old + vx * dt
+        y_new = y_old + vy * dt
+
+        if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
+            print("L'électron n'est plus dans le tube PM")
+            break
+
+        # Collision avec dynodes
+        collision_bas = False
+        collision_haut = False
+
+        for (x_start, x_end, y_start, y_end) in positions_dynodes_bas:
+            if segment_intersect_rectangle(x_old, y_old, x_new, y_new, x_start, x_end, y_start, y_end):
+                collision_bas = True
+                break
+
+        for (x_start, x_end, y_start, y_end) in positions_dynodes_haut:
+            if segment_intersect_rectangle(x_old, y_old, x_new, y_new, x_start, x_end, y_start, y_end):
+                collision_haut = True
+                break
+
+        if collision_bas:
+            print(f"Collision dynode bas à ({x_new:.2f}, {y_new:.2f})")
+            y_new += 2
+            vy = -vy
+
+        elif collision_haut:
+            print(f"Collision dynode haut à ({x_new:.2f}, {y_new:.2f})")
+            y_new -= 2
+            vy = -vy
 
         x.append(x_new)
         y.append(y_new)
 
-        if not (0 <= x_new < Lx and -Ly/2 <= y_new <= Ly/2):
-            print("L'électron n'est plus dans le tube PM")
-            break #enfin ça va être moins chiant
     return np.array(x), np.array(y)
+
 
 
 # ---------------------------------------Question 3b --------------------------------------------#
 
 x0 = 0.1
 y0 = 0.1
-vx0 = 0
-vy0 = 0
+vx0 = 15
+vy0 = 3
 dt = 1e-5
-it_max = 1000000
-traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)
+it_max = 100000
+traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max, a, b, c, d, e, f, N)
 
 #----------------------------------------affichage de la trajectoire x(t)------------------------#
 cp = plt.contourf(X, Y, res, levels=100, cmap='plasma')
 contour_dynodes = plt.contour(X, Y, bloqué, levels=[0.5], colors='black', linewidths=0.5)
 plt.colorbar(cp, label="Potentiel (V)")
 plt.plot(traj_x, traj_y, 'y-', label="Trajectoire")
-plt.plot(x0, y0, 'go', label="Départ (0,0)", markersize=2.5)
+plt.plot(x0, y0, 'go', label="Départ)", markersize=2.5)
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
-plt.title("Q3 b)")
+plt.title("Q3 c)")
 plt.legend()
 plt.axis("equal")
-plt.savefig("Q3b_trajectoire.png", dpi=300)
+plt.savefig("Q3c_rebonds", dpi=300)
 plt.show()
 
 print("Position finale :", traj_x[-1], traj_y[-1])
