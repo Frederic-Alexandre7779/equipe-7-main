@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 
 
-# ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- # 
+# ------------- CHANGER LES PARAMÈTRES AVANT DE LANCER LE CODE -------------------- #
 #initialiser la géométrie
-a, b, c, d, e, f = 2, 2, 5, 5, 0.2, 10
+a, b, c, d, e, f = 4, 3, 6, 4, 0.2, 10
 N = 4
 dx = 0.1 # step
 
@@ -48,8 +48,8 @@ def placer_dynodes_bas(V, bloqué):
 def placer_dynodes_haut(V, bloqué):
     for i in range(N//2):
         pot_dyn = (2*(i+1)) * 100
-        vert_start = f-b #coordonnée verticale du début de la dynode
-        vert_end = vert_start - e # la fin
+        vert_start = f-b-e #coordonnée verticale du début de la dynode
+        vert_end = vert_start + e # la fin
         horiz_start = a + (i+1)*c +d/2 + i*d - c/2 #coordonnée horizontale du début de la dynode
         horiz_end = horiz_start + c # fin
 
@@ -83,13 +83,14 @@ def relaxation(V, bloqué, variation= 1e-5, max_iter=1000000):
         print("Attention !!!!!!!!!! ")
         print("Le maximum d'itérations a été atteint sans stabilisation, donc le programme a été arrêté")
     return V
-c = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
-print(c)
+
+W = relaxation(V, bloqué, variation=1e-3, max_iter=3000)
+print(W)
 
 # --------------------------------------- Question 2 ---------------------------------#
 
 # calculer le gradient en x et y grâce à numpy
-Ey, Ex = np.gradient(-c, dx, dx)
+Ey, Ex = np.gradient(-W, dx, dx)
 
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
@@ -118,7 +119,7 @@ def Eulerer_lechamp(x, y, Ex, Ey, dx):
 
 # ------------POsitionner les dynodes du haut et celles du bas avec leur valeur de potentiel ------#
 
-def position_dynodes_bas(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
+def position_dynodes_bas(i):
     #dynodes_bas = []
     vert_start = -f*0.5 + b #coordonnée verticale du début de la dynode
     vert_end = vert_start + e # la fin
@@ -129,7 +130,7 @@ def position_dynodes_bas(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
     return [vert_start, vert_end, horiz_start, horiz_end, pot]
 
 
-def position_dynodes_haut(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
+def position_dynodes_haut(i):
     #dynodes_haut = []
     vert_start = f*0.5 - b #coordonnée verticale du début de la dynode
     vert_end = vert_start - e # la fin
@@ -146,8 +147,6 @@ def position_dynodes_haut(i, a=2, b=2, c=5, d=6, e=0.2, f=10):
 
 
 def contact_dyn_bas(x_new, y_new, x_old, y_old):
-    a, b, c, d, e, f = 2, 2, 5 ,6 ,0.2, 10
-    N = 5
     # Juste pour être sûr d,avoir les bonnes dimensions
 
     if -f/2 < y_new < 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
@@ -158,7 +157,7 @@ def contact_dyn_bas(x_new, y_new, x_old, y_old):
 
         for i in range (N//2 + N%2):
             # On initialise les dynodes avec leurs positions en mm
-            dynodes_bas = position_dynodes_bas(i, a, b, c, d, e, f)
+            dynodes_bas = position_dynodes_bas(i)
 
             if y_new <= dynodes_bas[1]: # On s'assure que le nouveau point est en bas de la dynode
 
@@ -207,8 +206,6 @@ def contact_dyn_bas(x_new, y_new, x_old, y_old):
 
 
 def contact_dyn_haut(x_new, y_new, x_old, y_old):
-    a, b, c, d, e, f = 2, 2, 5 ,5 ,0.2, 10
-    N = 4
     # Juste pour être sûr d'avoir les bonnes dimensions
 
     if f/2 > y_new > 0 and 0 < x_new < (2*a + (N+1)*(c/2) + (N-1)*(d/2)):
@@ -219,7 +216,7 @@ def contact_dyn_haut(x_new, y_new, x_old, y_old):
 
         for i in range (N//2):
             # On initialise les dynodes avec leurs positions en mm
-            dynodes_haut = position_dynodes_haut(i, a, b, c, d, e, f)
+            dynodes_haut = position_dynodes_haut(i)
 
             if y_new >= dynodes_haut[1]: # On s'assure que le nouveau point est en haut de la dynode
 
@@ -368,7 +365,7 @@ def position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max):#, dynodes_bas, dynode
 
 # ---------------------------------------Question 3b/c --------------------------------------------#
 
-x0 = 1
+x0 = 0
 y0 = 0
 vx0 = 0
 vy0 = 0
@@ -379,28 +376,28 @@ it_max = 50000
 traj_x, traj_y = position_el(x0, y0, vx0, vy0, Ex, Ey, dx, dt, it_max)#, dynodes_bas, dynodes_haut)
 
 
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, axe = plt.subplots(figsize=(10, 6))
 
 # Fond du champ électrique
-cp = ax.contourf(X, Y, E_norm, levels=100, cmap='plasma')
+cp = axe.contourf(X, Y, E_norm, levels=100, cmap='plasma')
 plt.colorbar(cp, label="|E| (V/m)")
 
 # Champ électrique (vecteurs blancs)
 saut = 2
-ax.quiver(X[::saut, ::saut], Y[::saut, ::saut], Ex[::saut, ::saut], Ey[::saut, ::saut], color='white', scale=6000)
+axe.quiver(X[::saut, ::saut], Y[::saut, ::saut], Ex[::saut, ::saut], Ey[::saut, ::saut], color='white', scale=6000)
 
 # Ligne de la trajectoire (vide au début)
-line, = ax.plot([], [], 'y-', label="Trajectoire de l'électron")
-point, = ax.plot([], [], 'go')  # point de l'électron
+line, = axe.plot([], [], 'y-', label="Trajectoire de l'électron")
+point, = axe.plot([], [], 'go')  # point de l'électron
 
 # Mise en forme du graphique
-ax.set_xlim(0, Lx)
-ax.set_ylim(-Ly/2, Ly/2)
-ax.set_xlabel("x (mm)")
-ax.set_ylabel("y (mm)")
-ax.set_title("Animation de la trajectoire de l'électron")
-ax.legend()
-ax.axis('equal')
+axe.set_xlim(0, Lx)
+axe.set_ylim(-Ly/2, Ly/2)
+axe.set_xlabel("x (mm)")
+axe.set_ylabel("y (mm)")
+axe.set_title("Animation de la trajectoire de l'électron")
+axe.legend()
+axe.axis('equal')
 
 # Fonction pour mettre à jour l'animation à chaque frame
 def update(frame):

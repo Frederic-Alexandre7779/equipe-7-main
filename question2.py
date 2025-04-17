@@ -63,7 +63,7 @@ V, bloqué = placer_dynodes_haut(V, bloqué)
 V, bloqué = placer_dynodes_bas(V, bloqué)
 
 # Relaxation aka ce qui n'existe pas en gph sauf si t'es camille et tu bois en criss
-# La variation minimale est établie à 10^-5 parce que 
+# La variation minimale est établie à 10^-5 parce que
 def relaxation(V, bloqué, variation=1e-5, max_iter=10000):
     for iteration in range(max_iter):
         V_old = V.copy() # pour la comparaison pour la tolérance
@@ -90,20 +90,25 @@ Ey, Ex = np.gradient(-res, dx, dx)
 E_norm = np.sqrt(Ex**2 + Ey**2) #norme
 
 #afficher le champ produit
-plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
+def affichage(X, Y, E_norm):
+    plt.contourf(X, Y, E_norm, levels=100, cmap='plasma')
 
-plt.colorbar(label="|E| (V/m)")
+    plt.colorbar(label="|E| (V/m)")
 
-saut = 2
-#vecteur
-plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
-           Ex[::saut, ::saut], Ey[::saut, ::saut],
-           color='white', scale=10000)
+    saut = 2
+    #vecteur
+    plt.quiver(X[::saut, ::saut], Y[::saut, ::saut],
+               Ex[::saut, ::saut], Ey[::saut, ::saut],
+               color='white', scale=10000)
 
-plt.title("Champ électrique dans le tube photomultiplicateur")
-plt.xlabel("x (mm)")
-plt.ylabel("y (mm)")
-plt.axis('equal')
-plt.tight_layout()
-plt.savefig("champ_PM.png", dpi=300)
-plt.show()
+    plt.title("Champ électrique dans le tube photomultiplicateur")
+    plt.xlabel("x (mm)")
+    plt.ylabel("y (mm)")
+    plt.axis('equal')
+    plt.tight_layout()
+    plt.savefig("champ_PM.png", dpi=300)
+    plt.show()
+
+if __name__ == "__main__":
+    # Fait appel à la fonction d'affichage pour le numéro 2 seulement
+    affichage(X, Y, E_norm)
